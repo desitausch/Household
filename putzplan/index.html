@@ -192,6 +192,30 @@
     flex: none;
     opacity: 0.6;
   }
+  .edit {
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-size: 0.95rem;
+    cursor: pointer;
+    padding: 4px 6px;
+    font-family: inherit;
+    flex: none;
+    opacity: 0.45;
+  }
+  .btn-danger {
+    background: none;
+    border: none;
+    color: #b3564d;
+    padding: 10px 12px;
+    font-size: 0.95rem;
+    cursor: pointer;
+    font-family: inherit;
+    margin-right: auto;
+  }
+  @media (prefers-color-scheme: dark) {
+    .btn-danger { color: #d98079; }
+  }
   .empty {
     color: var(--muted);
     font-size: 0.95rem;
@@ -399,6 +423,16 @@
     </div>
   </div>
 
+  <div class="sheet" id="sheet-edit" hidden>
+    <h3>Edit task</h3>
+    <textarea id="edit-text" rows="2"></textarea>
+    <div class="sheet-actions">
+      <button class="btn-danger" id="edit-delete">Delete task</button>
+      <button class="btn-secondary" data-close>Cancel</button>
+      <button class="btn-primary" id="edit-save">Save</button>
+    </div>
+  </div>
+
   <div class="sheet" id="sheet-notes" hidden>
     <h3>Notes &amp; questions</h3>
     <ul class="notes" id="notes-list"></ul>
@@ -483,17 +517,20 @@
 
   /* ---- Local state ----
      state  = ticks:   { <scopeKey>: { <taskId>: true } }
-     shared = { extra: { <taskId>: {text, section, ts} },   user-added tasks
-                notes: { <noteId>: {text, ts} } }           notes & questions
+     shared = { extra:     { <taskId>: {text, section, ts} },  user-added tasks
+                notes:     { <noteId>: {text, ts} },           notes & questions
+                overrides: { <taskId>: {text} | {hidden} } }   edits/deletions
+                                                               of tasks.json tasks
      Local copies live in localStorage (works offline). When a syncUrl is
      configured in tasks.json, the shared online state is the source of
      truth: every change is pushed there and all devices poll it. */
   var STORE = "putzplan-v2-state";
   var SHARED_STORE = "putzplan-v2-shared";
   var state = loadJson(STORE, {});
-  var shared = loadJson(SHARED_STORE, { extra: {}, notes: {} });
+  var shared = loadJson(SHARED_STORE, { extra: {}, notes: {}, overrides: {} });
   shared.extra = shared.extra || {};
   shared.notes = shared.notes || {};
+  shared.overrides = shared.overrides || {};
   var pendingWrites = 0;
 
   function loadJson(key, fallback) {
@@ -551,6 +588,7 @@
         state = next;
         shared.extra = remote.extra || {};
         shared.notes = remote.notes || {};
+        shared.overrides = remote.overrides || {};
         saveLocal();
         render();
       })
@@ -582,7 +620,16 @@
       .sort(function (a, b) { return a.ts - b.ts; });
   }
   function sectionTasks(section) {
-    return (tasksData[section] || []).concat(extrasFor(section));
+    var base = (tasksData[section] || [])
+      .filter(function (t) {
+        var o = shared.overrides[t.id];
+        return !(o && o.hidden);
+      })
+      .map(function (t) {
+        var o = shared.overrides[t.id];
+        return { id: t.id, text: (o && o.text) || t.text, base: true };
+      });
+    return base.concat(extrasFor(section));
   }
   function addExtraTask(text, section) {
     var id = newId("x");
@@ -591,10 +638,30 @@
     pushPatch("extra", id, shared.extra[id]);
     render();
   }
-  function removeExtraTask(id) {
-    delete shared.extra[id];
-    saveLocal();
-    pushPatch("extra", id, null);
+  function editTask(task, newText) {
+    if (task.base) {
+      shared.overrides[task.id] = { text: newText };
+      saveLocal();
+      pushPatch("overrides", task.id, shared.overrides[task.id]);
+    } else {
+      if (shared.extra[task.id]) {
+        shared.extra[task.id].text = newText;
+        saveLocal();
+        pushPatch("extra", task.id, shared.extra[task.id]);
+      }
+    }
+    render();
+  }
+  function deleteTask(task) {
+    if (task.base) {
+      shared.overrides[task.id] = { hidden: true };
+      saveLocal();
+      pushPatch("overrides", task.id, shared.overrides[task.id]);
+    } else {
+      delete shared.extra[task.id];
+      saveLocal();
+      pushPatch("extra", task.id, null);
+    }
     render();
   }
 
@@ -668,18 +735,16 @@
       label.appendChild(input);
       label.appendChild(box);
       label.appendChild(span);
-      if (t.extra) {
-        var del = document.createElement("button");
-        del.className = "del";
-        del.textContent = "×";
-        del.setAttribute("aria-label", "Delete this task");
-        del.addEventListener("click", function (ev) {
-          ev.preventDefault();
-          ev.stopPropagation();
-          if (confirm("Delete this task for everyone?")) { removeExtraTask(t.id); }
-        });
-        label.appendChild(del);
-      }
+      var editBtn = document.createElement("button");
+      editBtn.className = "edit";
+      editBtn.textContent = "✎";
+      editBtn.setAttribute("aria-label", "Edit this task");
+      editBtn.addEventListener("click", function (ev) {
+        ev.preventDefault();
+        ev.stopPropagation();
+        openEditSheet(t);
+      });
+      label.appendChild(editBtn);
       li.appendChild(label);
       ul.appendChild(li);
     });
@@ -742,6 +807,8 @@
   var backdrop = document.getElementById("backdrop");
   var sheetAdd = document.getElementById("sheet-add");
   var sheetNotes = document.getElementById("sheet-notes");
+  var sheetEdit = document.getElementById("sheet-edit");
+  var editingTask = null;
 
   function openSheet(sheet) {
     backdrop.hidden = false;
@@ -751,7 +818,29 @@
     backdrop.hidden = true;
     sheetAdd.hidden = true;
     sheetNotes.hidden = true;
+    sheetEdit.hidden = true;
+    editingTask = null;
   }
+  function openEditSheet(task) {
+    closeSheets();
+    editingTask = task;
+    document.getElementById("edit-text").value = task.text;
+    openSheet(sheetEdit);
+  }
+  document.getElementById("edit-save").addEventListener("click", function () {
+    if (!editingTask) { return; }
+    var text = document.getElementById("edit-text").value.trim();
+    if (!text) { return; }
+    editTask(editingTask, text);
+    closeSheets();
+  });
+  document.getElementById("edit-delete").addEventListener("click", function () {
+    if (!editingTask) { return; }
+    if (confirm("Delete this task for everyone?")) {
+      deleteTask(editingTask);
+      closeSheets();
+    }
+  });
   document.getElementById("fab-add").addEventListener("click", function () { openSheet(sheetAdd); });
   document.getElementById("fab-notes").addEventListener("click", function () { openSheet(sheetNotes); });
   backdrop.addEventListener("click", closeSheets);

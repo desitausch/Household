@@ -43,6 +43,17 @@ Firebase-Datenbank gespeichert (nicht in `tasks.json`) und lassen sich über
 das kleine **×** an der Aufgabe wieder löschen. Für dauerhafte
 „offizielle" Aufgaben ist weiterhin `tasks.json` der richtige Ort.
 
+## Aufgaben bearbeiten und löschen (✎-Stift)
+
+Jede Aufgabe hat rechts ein dezentes **✎**-Symbol: Antippen öffnet ein
+Fenster zum Umformulieren („Save") oder Löschen („Delete task") – gilt
+sofort auf allen Geräten. Bei festen Aufgaben aus `tasks.json` wird die
+Änderung als Überschreibung in der Firebase-Datenbank gespeichert;
+`tasks.json` selbst bleibt unverändert. Eine versehentlich gelöschte feste
+Aufgabe lässt sich wiederherstellen, indem der entsprechende Eintrag unter
+`putzplan/v2/overrides` in der Firebase-Konsole gelöscht wird (oder einfach
+Claude fragen).
+
 ## Notizen & Rückfragen (💬-Button)
 
 Über dem + sitzt ein **💬**-Button: Dort kann die Reinigungskraft Fragen
