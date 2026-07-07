@@ -12,7 +12,8 @@ hinzufügen" wie eine App aufs Handy.
 
 ## Aufgaben ändern
 
-Alle Aufgaben stehen in der Datei **`tasks.json`**. Es gibt zwei Bereiche:
+Alle Aufgaben stehen in der Datei **`putzplan/tasks.json`**. Es gibt zwei
+Bereiche:
 
 ### 1. `woechentlich` – die festen Aufgaben (jede Woche gleich)
 
@@ -42,18 +43,14 @@ einen Haken.
 
 ## Wie kommt eine Änderung aufs Handy?
 
-Die Datei `tasks.json` im Repository ändern (direkt auf GitHub im Browser
-möglich: Datei öffnen → Stift-Symbol → speichern). Die Seite lädt die
-Aufgaben alle 5 Minuten neu und immer, wenn sie geöffnet wird – die
-Reinigungskraft muss nichts tun.
+Die Datei `putzplan/tasks.json` im Repository ändern (direkt auf GitHub im
+Browser möglich: Datei öffnen → Stift-Symbol → speichern). Nach der
+Veröffentlichung lädt die Seite die Aufgaben alle 5 Minuten neu und immer,
+wenn sie geöffnet wird – die Reinigungskraft muss nichts tun.
 
-## Veröffentlichen (einmalig)
+## Veröffentlichung
 
-Damit es einen Link zum Teilen gibt, GitHub Pages aktivieren:
-Repository → **Settings → Pages** → unter „Branch" den Branch `main` und den
-Ordner **`/docs`** auswählen → Save. Nach 1–2 Minuten ist die Seite erreichbar
-unter:
-
-```
-https://desitausch.github.io/Household/
-```
+Der Workflow `.github/workflows/putzplan-pages.yml` übernimmt die
+Veröffentlichung über GitHub Pages automatisch. Aktuell ist er pausiert,
+weil GitHub Pages für private Repos einen Bezahl-Plan voraussetzt – Details
+und Status stehen in `putzplan/README.md`.

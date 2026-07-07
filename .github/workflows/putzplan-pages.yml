@@ -1,11 +1,18 @@
 name: Putzplan veröffentlichen
 
+# Solange GitHub Pages für dieses (private) Repo nicht verfügbar ist, läuft
+# dieser Workflow nur manuell (workflow_dispatch). Sobald das Hosting geklärt
+# ist, den push-Trigger wieder aktivieren:
+#
+#   on:
+#     push:
+#       branches: [main]
+#       paths:
+#         - "putzplan/**"
+#         - ".github/workflows/putzplan-pages.yml"
+#     workflow_dispatch:
+
 on:
-  push:
-    branches: [main]
-    paths:
-      - "docs/**"
-      - ".github/workflows/pages.yml"
   workflow_dispatch:
 
 permissions:
@@ -30,6 +37,6 @@ jobs:
           enablement: true
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: docs
+          path: putzplan
       - id: deployment
         uses: actions/deploy-pages@v4
