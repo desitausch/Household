@@ -15,12 +15,16 @@ wird einmalig per WhatsApp geteilt.
 
 ## Veröffentlichung
 
-Der Workflow `.github/workflows/putzplan-pages.yml` veröffentlicht diesen
-Ordner über GitHub Pages. **Status: noch nicht aktiv** – GitHub Pages ist für
-private Repos nur mit Bezahl-Plan verfügbar. Sobald das Hosting geklärt ist
-(Repo öffentlich machen oder separates öffentliches Repo), wird der
-push-Trigger im Workflow wieder aktiviert und jede Änderung an `tasks.json`
-geht automatisch live.
+Der Workflow `.github/workflows/putzplan-pages.yml` veröffentlicht die
+komplette Seite (Startseite + dieser Ordner) über GitHub Pages – automatisch
+bei jedem Push auf `main`, der `index.html`, `putzplan/` oder den Workflow
+ändert. Live-Adresse:
+
+```
+https://desitausch.github.io/Household/
+```
+
+Der Putzplan selbst liegt unter `…/Household/putzplan/`.
 
 ## Funktionsweise
 
