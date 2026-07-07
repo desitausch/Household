@@ -34,6 +34,22 @@ automatisch neu veröffentlicht; die Handys laden die Liste spätestens alle
 Der Text in `hinweis` erscheint als grüne Info-Box oben auf der Seite
 (z.B. allgemeine Erwartungen an die Reinigungskraft).
 
+## Aufgaben direkt vom Handy hinzufügen (+-Button)
+
+Unten rechts auf der Seite schwebt ein dezenter **+**-Button: Text eintippen,
+Kategorie wählen (Every visit / Once a week / Every 2 weeks / One-time) →
+die Aufgabe erscheint sofort auf allen Geräten. Diese Aufgaben werden in der
+Firebase-Datenbank gespeichert (nicht in `tasks.json`) und lassen sich über
+das kleine **×** an der Aufgabe wieder löschen. Für dauerhafte
+„offizielle" Aufgaben ist weiterhin `tasks.json` der richtige Ort.
+
+## Notizen & Rückfragen (💬-Button)
+
+Über dem + sitzt ein **💬**-Button: Dort kann die Reinigungskraft Fragen
+oder Anmerkungen hinterlassen (z.B. „Shower only half done, will finish next
+visit"). Alle sehen die Notizen; ein kleiner Zähler am Button zeigt, wie
+viele offen sind. Erledigte Notizen entfernt man über das **×**.
+
 ## Haken auf allen Geräten sichtbar (Sync)
 
 Wenn bei `syncUrl` eine Firebase-Datenbank-Adresse eingetragen ist, werden
