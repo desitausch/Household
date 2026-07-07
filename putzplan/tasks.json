@@ -1,16 +1,17 @@
 {
-  "titel": "Putzplan",
+  "titel": "Cleaning Plan",
   "hinweis": "",
+  "syncUrl": "",
   "woechentlich": [
-    { "id": "w1", "text": "Böden saugen und wischen (alle Räume)" },
-    { "id": "w2", "text": "Bad putzen: Dusche, Waschbecken, WC" },
-    { "id": "w3", "text": "Küche: Arbeitsflächen und Herd reinigen" },
-    { "id": "w4", "text": "Müll rausbringen und Mülleimer auswischen" },
-    { "id": "w5", "text": "Betten frisch beziehen" },
-    { "id": "w6", "text": "Staub wischen (Regale, Fensterbänke)" }
+    { "id": "w1", "text": "Vacuum and mop all floors" },
+    { "id": "w2", "text": "Clean bathroom: shower, sink, toilet" },
+    { "id": "w3", "text": "Kitchen: wipe countertops and stove" },
+    { "id": "w4", "text": "Take out the trash and wipe the bins" },
+    { "id": "w5", "text": "Change the bed sheets" },
+    { "id": "w6", "text": "Dust shelves and window sills" }
   ],
   "zusatz": [
-    { "id": "z1", "text": "Backofen innen reinigen", "woche": "2026-W28" },
-    { "id": "z2", "text": "Fenster im Wohnzimmer putzen" }
+    { "id": "z1", "text": "Clean the oven inside", "woche": "2026-W28" },
+    { "id": "z2", "text": "Clean the living room windows" }
   ]
 }

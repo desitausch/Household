@@ -3,22 +3,33 @@
 ## Was ist das?
 
 Eine kleine Web-Seite (`index.html`), die der Reinigungskraft jede Woche ihre
-Aufgaben anzeigt. Sie kann jede Aufgabe abhaken. Die Haken werden auf ihrem
-Handy gespeichert und setzen sich **jeden Montag automatisch zurück**.
+Aufgaben anzeigt. Die Oberfläche ist **auf Englisch** (die Reinigungskraft
+spricht Englisch); auch die Aufgabentexte in `tasks.json` sollten deshalb auf
+Englisch sein. Abgehakte Aufgaben setzen sich **jeden Montag automatisch
+zurück**.
 
 Der Link zur Seite kann einmalig per WhatsApp geschickt werden – am besten
 speichert sie ihn als Lesezeichen oder legt ihn über „Zum Startbildschirm
 hinzufügen" wie eine App aufs Handy.
 
+## Haken auf allen Geräten sichtbar (Sync)
+
+Wenn in `tasks.json` bei `syncUrl` eine Firebase-Datenbank-Adresse eingetragen
+ist, werden die Haken **zwischen allen Geräten geteilt**: Hakt die
+Reinigungskraft etwas ab, sieht man das auf jedem anderen Handy, das die Seite
+offen hat (Aktualisierung alle ~20 Sekunden und bei jedem Öffnen).
+
+Ist `syncUrl` leer, gelten die Haken nur auf dem jeweiligen Gerät.
+
 ## Aufgaben ändern
 
-Alle Aufgaben stehen in der Datei **`putzplan/tasks.json`**. Es gibt zwei
-Bereiche:
+Alle Aufgaben stehen in der Datei **`putzplan/tasks.json`** (auf Englisch).
+Es gibt zwei Bereiche:
 
 ### 1. `woechentlich` – die festen Aufgaben (jede Woche gleich)
 
 ```json
-{ "id": "w1", "text": "Böden saugen und wischen (alle Räume)" }
+{ "id": "w1", "text": "Vacuum and mop all floors" }
 ```
 
 Einfach Zeilen hinzufügen, ändern oder löschen. Jede Aufgabe braucht eine
@@ -29,12 +40,12 @@ eindeutige `id` (z.B. `w7`, `w8`, …).
 Zwei Möglichkeiten:
 
 ```json
-{ "id": "z5", "text": "Backofen innen reinigen", "woche": "2026-W29" }
+{ "id": "z5", "text": "Clean the oven inside", "woche": "2026-W29" }
 ```
 → wird **nur in dieser Kalenderwoche** angezeigt und verschwindet danach von selbst.
 
 ```json
-{ "id": "z6", "text": "Fenster im Wohnzimmer putzen" }
+{ "id": "z6", "text": "Clean the living room windows" }
 ```
 → ohne `woche` bleibt die Aufgabe stehen, bis sie aus der Datei gelöscht wird.
 
@@ -44,13 +55,12 @@ einen Haken.
 ## Wie kommt eine Änderung aufs Handy?
 
 Die Datei `putzplan/tasks.json` im Repository ändern (direkt auf GitHub im
-Browser möglich: Datei öffnen → Stift-Symbol → speichern). Nach der
-Veröffentlichung lädt die Seite die Aufgaben alle 5 Minuten neu und immer,
-wenn sie geöffnet wird – die Reinigungskraft muss nichts tun.
+Browser möglich: Datei öffnen → Stift-Symbol → speichern). Die Seite wird
+danach automatisch neu veröffentlicht; die Handys laden die Aufgabenliste
+spätestens alle 5 Minuten neu.
 
 ## Veröffentlichung
 
-Der Workflow `.github/workflows/putzplan-pages.yml` übernimmt die
-Veröffentlichung über GitHub Pages automatisch. Aktuell ist er pausiert,
-weil GitHub Pages für private Repos einen Bezahl-Plan voraussetzt – Details
-und Status stehen in `putzplan/README.md`.
+Der Workflow `.github/workflows/putzplan-pages.yml` baut die Seite bei jedem
+Push auf `main` und legt sie auf den `gh-pages`-Branch; GitHub Pages liefert
+sie unter https://desitausch.github.io/Household/ aus.
