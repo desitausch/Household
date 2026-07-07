@@ -17,7 +17,7 @@
     { "id": "v12", "text": "Keep the dressing room tidy" },
     { "id": "v13", "text": "Kitchen shelf with the mail: sort the letters and arrange everything neatly" },
     { "id": "v14", "text": "Tidy up the kids' room" },
-    { "id": "v15", "text": "Floors: vacuum (or start the robot vacuum) and mop everywhere, including all corners — no stains anywhere, also in the dressing room next to the vanity table" },
+    { "id": "v15", "text": "Floors in the main areas: vacuum (or start the robot vacuum) and mop the kitchen, dining area and entryway — no stains" },
     { "id": "v16", "text": "Bathroom floors: mop thoroughly with proper cleaning product" }
   ],
   "weekly": [
@@ -25,7 +25,8 @@
     { "id": "w2", "text": "Deep-clean the shower, including thorough limescale removal" },
     { "id": "w3", "text": "Clean the bathtub" },
     { "id": "w4", "text": "Fridge: wipe out and clean the inside" },
-    { "id": "w5", "text": "Vacuum the rug" }
+    { "id": "w5", "text": "Vacuum the rug" },
+    { "id": "w6", "text": "Floors very thoroughly: vacuum and mop the whole apartment, including all corners (also in the dressing room next to the vanity table) — no stains anywhere" }
   ],
   "biweekly": [
     { "id": "b1", "text": "Sort the kids' toys" },
