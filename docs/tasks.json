@@ -1,0 +1,16 @@
+{
+  "titel": "Putzplan",
+  "hinweis": "",
+  "woechentlich": [
+    { "id": "w1", "text": "Böden saugen und wischen (alle Räume)" },
+    { "id": "w2", "text": "Bad putzen: Dusche, Waschbecken, WC" },
+    { "id": "w3", "text": "Küche: Arbeitsflächen und Herd reinigen" },
+    { "id": "w4", "text": "Müll rausbringen und Mülleimer auswischen" },
+    { "id": "w5", "text": "Betten frisch beziehen" },
+    { "id": "w6", "text": "Staub wischen (Regale, Fensterbänke)" }
+  ],
+  "zusatz": [
+    { "id": "z1", "text": "Backofen innen reinigen", "woche": "2026-W28" },
+    { "id": "z2", "text": "Fenster im Wohnzimmer putzen" }
+  ]
+}
