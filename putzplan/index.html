@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#2f7d5d">
-<title>Putzplan</title>
+<title>Cleaning Plan</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%9C%A8%3C/text%3E%3C/svg%3E">
 <style>
   :root {
@@ -193,29 +193,29 @@
 <body>
   <nav>
     <div class="nav-inner">
-      <a class="brand" href="../">🏠 Haushalt</a>
-      <a class="link" href="../">Start</a>
-      <a class="link active" href="./">Putzplan</a>
+      <a class="brand" href="../">🏠 Household</a>
+      <a class="link" href="../">Home</a>
+      <a class="link active" href="./">Cleaning plan</a>
     </div>
   </nav>
   <main>
   <header>
-    <h1 id="titel">Putzplan</h1>
+    <h1 id="titel">Cleaning Plan</h1>
     <div class="week" id="week-label"></div>
   </header>
 
   <div class="note" id="hinweis" hidden></div>
 
   <div class="progress-wrap">
-    <div class="progress-label"><span>Erledigt</span><strong id="progress-text">0 von 0</strong></div>
+    <div class="progress-label"><span>Done</span><strong id="progress-text">0 of 0</strong></div>
     <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
-    <div class="all-done" id="all-done">Alles erledigt – vielen Dank! 🎉</div>
+    <div class="all-done" id="all-done">All done — thank you! 🎉</div>
   </div>
 
-  <h2>Jede Woche</h2>
+  <h2>Every week</h2>
   <ul class="tasks" id="list-woechentlich"></ul>
 
-  <h2>Diese Woche zusätzlich</h2>
+  <h2>Extra this week</h2>
   <ul class="tasks" id="list-zusatz"></ul>
 
   <footer id="footer"></footer>
@@ -225,24 +225,25 @@
 (function () {
   "use strict";
 
-  /* Fallback, falls tasks.json nicht geladen werden kann (z.B. offline). */
+  /* Fallback if tasks.json cannot be loaded (e.g. offline). */
   var DEFAULT_TASKS = {
-    titel: "Putzplan",
+    titel: "Cleaning Plan",
     hinweis: "",
+    syncUrl: "",
     woechentlich: [
-      { id: "w1", text: "Böden saugen und wischen (alle Räume)" },
-      { id: "w2", text: "Bad putzen: Dusche, Waschbecken, WC" },
-      { id: "w3", text: "Küche: Arbeitsflächen und Herd reinigen" },
-      { id: "w4", text: "Müll rausbringen und Mülleimer auswischen" },
-      { id: "w5", text: "Betten frisch beziehen" },
-      { id: "w6", text: "Staub wischen (Regale, Fensterbänke)" }
+      { id: "w1", text: "Vacuum and mop all floors" },
+      { id: "w2", text: "Clean bathroom: shower, sink, toilet" },
+      { id: "w3", text: "Kitchen: wipe countertops and stove" },
+      { id: "w4", text: "Take out the trash and wipe the bins" },
+      { id: "w5", text: "Change the bed sheets" },
+      { id: "w6", text: "Dust shelves and window sills" }
     ],
     zusatz: []
   };
 
   var CHECK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>';
 
-  /* ---- Kalenderwoche (ISO 8601) ---- */
+  /* ---- ISO 8601 calendar week ---- */
   function isoWeek(date) {
     var d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
     var day = d.getUTCDay() || 7;
@@ -255,6 +256,7 @@
     var w = isoWeek(date);
     return w.year + "-W" + String(w.week).padStart(2, "0");
   }
+  var MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   function weekRangeLabel(date) {
     var d = new Date(date);
     var day = d.getDay() || 7;
@@ -262,19 +264,25 @@
     var monday = new Date(d);
     var sunday = new Date(d);
     sunday.setDate(sunday.getDate() + 6);
-    var fmt = function (x) { return x.getDate() + "." + (x.getMonth() + 1) + "."; };
-    return "KW " + isoWeek(date).week + " · " + fmt(monday) + " – " + fmt(sunday);
+    var fmt = function (x) { return x.getDate() + " " + MONTHS[x.getMonth()]; };
+    return "Week " + isoWeek(date).week + " · " + fmt(monday) + " – " + fmt(sunday);
   }
 
   var currentWeek = weekKey(new Date());
   var storageKey = "putzplan-" + currentWeek;
 
-  /* ---- Erledigt-Status (pro Woche, bleibt auf dem Handy gespeichert) ---- */
-  function loadDone() {
+  /* ---- Done state ----
+     Local copy lives in localStorage (works offline). When a syncUrl is
+     configured in tasks.json, the shared online state is the source of
+     truth: every change is pushed there, and all devices poll it. */
+  var done = loadLocal();
+  var pendingWrites = 0;
+
+  function loadLocal() {
     try { return JSON.parse(localStorage.getItem(storageKey)) || {}; }
     catch (e) { return {}; }
   }
-  function saveDone(done) {
+  function saveLocal() {
     try { localStorage.setItem(storageKey, JSON.stringify(done)); } catch (e) {}
   }
   function cleanupOldWeeks() {
@@ -290,6 +298,39 @@
 
   var tasksData = DEFAULT_TASKS;
 
+  function syncBase() {
+    var u = (tasksData.syncUrl || "").replace(/\/+$/, "");
+    return u ? u + "/putzplan/" + currentWeek + ".json" : "";
+  }
+
+  function pushChange(id, checked) {
+    var url = syncBase();
+    if (!url) { return; }
+    pendingWrites++;
+    var body = {};
+    body[id] = checked ? true : null;
+    fetch(url, { method: "PATCH", body: JSON.stringify(body) })
+      .catch(function () {})
+      .then(function () {
+        pendingWrites--;
+        if (pendingWrites === 0) { pullState(); }
+      });
+  }
+
+  function pullState() {
+    var url = syncBase();
+    if (!url) { return; }
+    fetch(url, { cache: "no-store" })
+      .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then(function (state) {
+        if (pendingWrites > 0) { return; }
+        done = state || {};
+        saveLocal();
+        render();
+      })
+      .catch(function () { /* offline: keep local state */ });
+  }
+
   function visibleZusatz() {
     return (tasksData.zusatz || []).filter(function (t) {
       return !t.woche || t.woche === currentWeek;
@@ -297,9 +338,8 @@
   }
 
   function render() {
-    var done = loadDone();
-    document.getElementById("titel").textContent = tasksData.titel || "Putzplan";
-    document.title = tasksData.titel || "Putzplan";
+    document.getElementById("titel").textContent = tasksData.titel || "Cleaning Plan";
+    document.title = tasksData.titel || "Cleaning Plan";
     document.getElementById("week-label").textContent = weekRangeLabel(new Date());
 
     var hinweisEl = document.getElementById("hinweis");
@@ -310,12 +350,12 @@
       hinweisEl.hidden = true;
     }
 
-    renderList("list-woechentlich", tasksData.woechentlich || [], done, "Keine Aufgaben eingetragen.");
-    renderList("list-zusatz", visibleZusatz(), done, "Diese Woche nichts Zusätzliches. 👍");
+    renderList("list-woechentlich", tasksData.woechentlich || [], "No tasks yet.");
+    renderList("list-zusatz", visibleZusatz(), "Nothing extra this week. 👍");
     updateProgress();
   }
 
-  function renderList(elId, tasks, done, emptyText) {
+  function renderList(elId, tasks, emptyText) {
     var ul = document.getElementById(elId);
     ul.innerHTML = "";
     if (!tasks.length) {
@@ -333,12 +373,10 @@
       input.type = "checkbox";
       input.checked = !!done[t.id];
       input.addEventListener("change", function () {
-        var d = loadDone();
-        if (input.checked) { d[t.id] = true; } else { delete d[t.id]; }
-        saveDone(d);
+        if (input.checked) { done[t.id] = true; } else { delete done[t.id]; }
+        saveLocal();
+        pushChange(t.id, input.checked);
         updateProgress();
-        var span = label.querySelector(".task-text");
-        span.classList.toggle("done", input.checked);
       });
       var box = document.createElement("span");
       box.className = "box";
@@ -355,16 +393,15 @@
   }
 
   function updateProgress() {
-    var done = loadDone();
     var all = (tasksData.woechentlich || []).concat(visibleZusatz());
     var total = all.length;
     var count = all.filter(function (t) { return done[t.id]; }).length;
-    document.getElementById("progress-text").textContent = count + " von " + total;
+    document.getElementById("progress-text").textContent = count + " of " + total;
     document.getElementById("progress-fill").style.width = total ? (100 * count / total) + "%" : "0%";
     document.getElementById("all-done").style.display = (total > 0 && count === total) ? "block" : "none";
   }
 
-  /* ---- Aufgaben laden und regelmäßig aktualisieren ---- */
+  /* ---- Load task list and refresh it regularly ---- */
   function applyData(data) {
     if (data && (data.woechentlich || data.zusatz)) {
       tasksData = data;
@@ -376,22 +413,24 @@
   function fetchTasks() {
     fetch("tasks.json?t=" + Date.now(), { cache: "no-store" })
       .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
-      .then(applyData)
-      .catch(function () { /* offline oder Datei fehlt: letzten Stand behalten */ });
+      .then(function (data) { applyData(data); pullState(); })
+      .catch(function () { /* offline or file missing: keep last state */ });
   }
 
-  /* Neue Woche erkennen, falls die Seite tagelang offen bleibt */
+  /* Detect a new week in case the page stays open for days */
   function checkNewWeek() {
     var now = weekKey(new Date());
     if (now !== currentWeek) {
       currentWeek = now;
       storageKey = "putzplan-" + currentWeek;
+      done = {};
       cleanupOldWeeks();
       render();
+      pullState();
     }
   }
 
-  /* Start: erst Cache, dann frisch laden */
+  /* Start: cached data first, then fresh */
   try {
     var cached = JSON.parse(localStorage.getItem("putzplan-cache"));
     if (cached) { tasksData = cached; }
@@ -402,12 +441,13 @@
   fetchTasks();
 
   setInterval(function () { checkNewWeek(); fetchTasks(); }, 5 * 60 * 1000);
+  setInterval(function () { checkNewWeek(); pullState(); }, 20 * 1000);
   document.addEventListener("visibilitychange", function () {
     if (!document.hidden) { checkNewWeek(); fetchTasks(); }
   });
 
   document.getElementById("footer").innerHTML =
-    "Haken werden auf diesem Handy gespeichert und starten jede Woche neu.<br>Die Liste aktualisiert sich automatisch.";
+    "Ticks reset automatically every Monday.<br>The list updates on its own.";
 })();
 </script>
 </body>
