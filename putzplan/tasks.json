@@ -1,7 +1,7 @@
 {
   "titel": "Cleaning Plan",
   "hinweis": "Please clean with attention to detail — it should feel properly cleaned, nothing skipped or overlooked. Everything has its fixed place: put things back exactly where they belong. If you are unsure about anything (for example the coffee machine), please just ask! If the laundry gets too much in some weeks, tell us. And when you leave, please check that the hallway in front of the apartment looks tidy too.",
-  "syncUrl": "",
+  "syncUrl": "https://haushalt-s9-default-rtdb.europe-west1.firebasedatabase.app",
   "everyVisit": [
     { "id": "v1", "text": "Kitchen: clean all surfaces and leave everything tidy" },
     { "id": "v2", "text": "Dishwasher: run it and put everything away — it must be empty at the end" },
