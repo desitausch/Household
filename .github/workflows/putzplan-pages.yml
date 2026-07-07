@@ -1,19 +1,12 @@
 name: Haushalts-Seite veröffentlichen
 
-# Solange GitHub Pages für dieses (private) Repo nicht verfügbar ist, läuft
-# dieser Workflow nur manuell (workflow_dispatch). Sobald das Hosting geklärt
-# ist, den push-Trigger wieder aktivieren:
-#
-#   on:
-#     push:
-#       branches: [main]
-#       paths:
-#         - "index.html"
-#         - "putzplan/**"
-#         - ".github/workflows/putzplan-pages.yml"
-#     workflow_dispatch:
-
 on:
+  push:
+    branches: [main]
+    paths:
+      - "index.html"
+      - "putzplan/**"
+      - ".github/workflows/putzplan-pages.yml"
   workflow_dispatch:
 
 permissions:
