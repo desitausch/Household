@@ -30,13 +30,12 @@ Der Putzplan selbst liegt unter `…/Household/putzplan/`.
 
 - Oberfläche auf Englisch (Sprache der Reinigungskraft); Aufgabentexte in
   `tasks.json` daher ebenfalls auf Englisch.
+- Vier Aufgaben-Rhythmen mit eigenem Reset: `everyVisit` (täglich),
+  `weekly` (montags), `biweekly` (jeden zweiten Montag), `oneTime` (bleibt
+  abgehakt, bis die Aufgabe aus `tasks.json` entfernt wird).
 - Erledigt-Haken: Ist in `tasks.json` eine `syncUrl` (Firebase Realtime
   Database) eingetragen, werden die Haken über alle Geräte geteilt – die
   Seite schreibt Änderungen per REST dorthin und fragt den Stand alle ~20
   Sekunden sowie beim Öffnen ab. Ohne `syncUrl` gelten die Haken nur lokal
   auf dem Gerät (localStorage).
-- Wöchentlicher Neustart: Der Erledigt-Stand hängt an der Kalenderwoche und
-  beginnt montags automatisch leer.
 - `tasks.json` wird beim Öffnen und danach alle 5 Minuten neu geladen.
-- Zusatzaufgaben mit `"woche": "JJJJ-WNN"` erscheinen nur in dieser
-  Kalenderwoche; ohne Wochenangabe bleiben sie, bis sie gelöscht werden.

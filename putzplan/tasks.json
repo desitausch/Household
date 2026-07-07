@@ -1,17 +1,44 @@
 {
   "titel": "Cleaning Plan",
-  "hinweis": "",
+  "hinweis": "Please clean with attention to detail — it should feel properly cleaned, nothing skipped or overlooked. Everything has its fixed place: put things back exactly where they belong. If you are unsure about anything (for example the coffee machine), please just ask! If the laundry gets too much in some weeks, tell us. And when you leave, please check that the hallway in front of the apartment looks tidy too.",
   "syncUrl": "",
-  "woechentlich": [
-    { "id": "w1", "text": "Vacuum and mop all floors" },
-    { "id": "w2", "text": "Clean bathroom: shower, sink, toilet" },
-    { "id": "w3", "text": "Kitchen: wipe countertops and stove" },
-    { "id": "w4", "text": "Take out the trash and wipe the bins" },
-    { "id": "w5", "text": "Change the bed sheets" },
-    { "id": "w6", "text": "Dust shelves and window sills" }
+  "everyVisit": [
+    { "id": "v1", "text": "Kitchen: clean all surfaces and leave everything tidy" },
+    { "id": "v2", "text": "Dishwasher: run it and put everything away — it must be empty at the end" },
+    { "id": "v3", "text": "Fridge: check for spoiled food and take it out" },
+    { "id": "v4", "text": "Clean the coffee machine (ask us if you're not sure how)" },
+    { "id": "v5", "text": "Dust the fronts and handles of cupboards and furniture" },
+    { "id": "v6", "text": "Put everything back in its proper place — neat and precise, even if we left it somewhere else" },
+    { "id": "v7", "text": "Make the beds neatly" },
+    { "id": "v8", "text": "Bedroom dressers: clear off what doesn't belong and wipe them with a clean cloth" },
+    { "id": "v9", "text": "Bathrooms: clean the taps until they shine (no streaks) and the toilets inside and out" },
+    { "id": "v10", "text": "Bathrooms: arrange the bottles and everything on the counters neatly, clean the toothbrush holders and cups on the outside" },
+    { "id": "v11", "text": "Laundry: wash as much as possible, fold and put away neatly — steam wrinkled clothes before they go into the wardrobe" },
+    { "id": "v12", "text": "Keep the dressing room tidy" },
+    { "id": "v13", "text": "Kitchen shelf with the mail: sort the letters and arrange everything neatly" },
+    { "id": "v14", "text": "Tidy up the kids' room" },
+    { "id": "v15", "text": "Floors: vacuum (or start the robot vacuum) and mop everywhere, including all corners — no stains anywhere, also in the dressing room next to the vanity table" },
+    { "id": "v16", "text": "Bathroom floors: mop thoroughly with proper cleaning product" }
   ],
-  "zusatz": [
-    { "id": "z1", "text": "Clean the oven inside", "woche": "2026-W28" },
-    { "id": "z2", "text": "Clean the living room windows" }
+  "weekly": [
+    { "id": "w1", "text": "Put fresh sheets on the beds (unless we ask for it more often)" },
+    { "id": "w2", "text": "Deep-clean the shower, including thorough limescale removal" },
+    { "id": "w3", "text": "Clean the bathtub" },
+    { "id": "w4", "text": "Fridge: wipe out and clean the inside" },
+    { "id": "w5", "text": "Vacuum the rug" }
+  ],
+  "biweekly": [
+    { "id": "b1", "text": "Sort the kids' toys" },
+    { "id": "b2", "text": "Shower drain: take out the grate and clean it" },
+    { "id": "b3", "text": "Clean the sink drains" },
+    { "id": "b4", "text": "Clean the air fryer" },
+    { "id": "b5", "text": "Kitchen cupboards: open one, wipe it out and arrange it neatly (a different one each time)" },
+    { "id": "b6", "text": "Windows: quick clean with the special window cloth (a thorough clean every 2 months)" }
+  ],
+  "oneTime": [
+    { "id": "o1", "text": "Clean the whirlpool on the terrace and put the cover on" },
+    { "id": "o2", "text": "Terrace: have a look outside and arrange everything neatly so it doesn't look wild" },
+    { "id": "o3", "text": "Sort the entryway wardrobe" },
+    { "id": "o4", "text": "Bedroom wardrobe: sort it properly — ask us how we'd like it organized" }
   ]
 }

@@ -135,7 +135,12 @@
     text-transform: uppercase;
     letter-spacing: 0.06em;
     color: var(--muted);
-    margin: 22px 6px 10px;
+    margin: 22px 6px 4px;
+  }
+  .section-hint {
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin: 0 6px 10px;
   }
   ul.tasks { list-style: none; }
   li.task {
@@ -212,11 +217,21 @@
     <div class="all-done" id="all-done">All done — thank you! 🎉</div>
   </div>
 
-  <h2>Every week</h2>
-  <ul class="tasks" id="list-woechentlich"></ul>
+  <h2>Every visit</h2>
+  <p class="section-hint">These reset every day — tick them each time you're here.</p>
+  <ul class="tasks" id="list-everyVisit"></ul>
 
-  <h2>Extra this week</h2>
-  <ul class="tasks" id="list-zusatz"></ul>
+  <h2>Once a week</h2>
+  <p class="section-hint">Resets every Monday.</p>
+  <ul class="tasks" id="list-weekly"></ul>
+
+  <h2>Every 2 weeks</h2>
+  <p class="section-hint">When you have some time — resets every other Monday.</p>
+  <ul class="tasks" id="list-biweekly"></ul>
+
+  <h2>One-time tasks</h2>
+  <p class="section-hint">Stay ticked once done.</p>
+  <ul class="tasks" id="list-oneTime"></ul>
 
   <footer id="footer"></footer>
   </main>
@@ -230,20 +245,16 @@
     titel: "Cleaning Plan",
     hinweis: "",
     syncUrl: "",
-    woechentlich: [
-      { id: "w1", text: "Vacuum and mop all floors" },
-      { id: "w2", text: "Clean bathroom: shower, sink, toilet" },
-      { id: "w3", text: "Kitchen: wipe countertops and stove" },
-      { id: "w4", text: "Take out the trash and wipe the bins" },
-      { id: "w5", text: "Change the bed sheets" },
-      { id: "w6", text: "Dust shelves and window sills" }
-    ],
-    zusatz: []
+    everyVisit: [],
+    weekly: [],
+    biweekly: [],
+    oneTime: []
   };
 
   var CHECK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>';
+  var SECTIONS = ["everyVisit", "weekly", "biweekly", "oneTime"];
 
-  /* ---- ISO 8601 calendar week ---- */
+  /* ---- Time scopes: which "period" each section's ticks belong to ---- */
   function isoWeek(date) {
     var d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
     var day = d.getUTCDay() || 7;
@@ -252,9 +263,28 @@
     var week = Math.ceil(((d - yearStart) / 86400000 + 1) / 7);
     return { year: d.getUTCFullYear(), week: week };
   }
+  function dayKey(date) {
+    return date.getFullYear() + "-" +
+      String(date.getMonth() + 1).padStart(2, "0") + "-" +
+      String(date.getDate()).padStart(2, "0");
+  }
   function weekKey(date) {
     var w = isoWeek(date);
     return w.year + "-W" + String(w.week).padStart(2, "0");
+  }
+  function biweekKey(date) {
+    /* 14-day blocks aligned to Mondays (Mon 5 Jan 1970 as block start) */
+    var utcDays = Math.floor(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()) / 86400000);
+    return "P" + Math.floor((utcDays - 4) / 14);
+  }
+  function scopeKeys() {
+    var now = new Date();
+    return {
+      everyVisit: "d-" + dayKey(now),
+      weekly: weekKey(now),
+      biweekly: biweekKey(now),
+      oneTime: "once"
+    };
   }
   var MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   function weekRangeLabel(date) {
@@ -268,48 +298,49 @@
     return "Week " + isoWeek(date).week + " · " + fmt(monday) + " – " + fmt(sunday);
   }
 
-  var currentWeek = weekKey(new Date());
-  var storageKey = "putzplan-" + currentWeek;
+  var scopes = scopeKeys();
 
-  /* ---- Done state ----
-     Local copy lives in localStorage (works offline). When a syncUrl is
-     configured in tasks.json, the shared online state is the source of
-     truth: every change is pushed there, and all devices poll it. */
-  var done = loadLocal();
+  /* ---- Tick state ----
+     state = { <scopeKey>: { <taskId>: true } }. A local copy lives in
+     localStorage (works offline). When a syncUrl is configured in
+     tasks.json, the shared online state is the source of truth: every
+     change is pushed there and all devices poll it. */
+  var STORE = "putzplan-v2-state";
+  var state = loadLocal();
   var pendingWrites = 0;
 
+  function currentScopeValues() {
+    return SECTIONS.map(function (s) { return scopes[s]; });
+  }
   function loadLocal() {
-    try { return JSON.parse(localStorage.getItem(storageKey)) || {}; }
+    try { return JSON.parse(localStorage.getItem(STORE)) || {}; }
     catch (e) { return {}; }
   }
   function saveLocal() {
-    try { localStorage.setItem(storageKey, JSON.stringify(done)); } catch (e) {}
-  }
-  function cleanupOldWeeks() {
     try {
-      for (var i = localStorage.length - 1; i >= 0; i--) {
-        var k = localStorage.key(i);
-        if (k && k.indexOf("putzplan-") === 0 && k !== storageKey && k !== "putzplan-cache") {
-          localStorage.removeItem(k);
-        }
-      }
+      var keep = {};
+      currentScopeValues().forEach(function (k) {
+        if (state[k]) { keep[k] = state[k]; }
+      });
+      localStorage.setItem(STORE, JSON.stringify(keep));
     } catch (e) {}
   }
 
   var tasksData = DEFAULT_TASKS;
 
-  function syncBase() {
+  /* ---- Sync (Firebase Realtime Database REST) ---- */
+  function syncRoot() {
     var u = (tasksData.syncUrl || "").replace(/\/+$/, "");
-    return u ? u + "/putzplan/" + currentWeek + ".json" : "";
+    return u ? u + "/putzplan/v2" : "";
   }
 
-  function pushChange(id, checked) {
-    var url = syncBase();
-    if (!url) { return; }
+  function pushChange(scopeKey, id, checked) {
+    var root = syncRoot();
+    if (!root) { return; }
     pendingWrites++;
     var body = {};
     body[id] = checked ? true : null;
-    fetch(url, { method: "PATCH", body: JSON.stringify(body) })
+    fetch(root + "/" + scopeKey + ".json", { method: "PATCH", body: JSON.stringify(body) })
       .catch(function () {})
       .then(function () {
         pendingWrites--;
@@ -318,23 +349,36 @@
   }
 
   function pullState() {
-    var url = syncBase();
-    if (!url) { return; }
-    fetch(url, { cache: "no-store" })
+    var root = syncRoot();
+    if (!root) { return; }
+    fetch(root + ".json", { cache: "no-store" })
       .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
-      .then(function (state) {
+      .then(function (remote) {
         if (pendingWrites > 0) { return; }
-        done = state || {};
+        remote = remote || {};
+        var next = {};
+        currentScopeValues().forEach(function (k) {
+          if (remote[k]) { next[k] = remote[k]; }
+        });
+        state = next;
         saveLocal();
         render();
       })
       .catch(function () { /* offline: keep local state */ });
   }
 
-  function visibleZusatz() {
-    return (tasksData.zusatz || []).filter(function (t) {
-      return !t.woche || t.woche === currentWeek;
-    });
+  /* ---- Rendering ---- */
+  function isDone(section, id) {
+    var s = state[scopes[section]];
+    return !!(s && s[id]);
+  }
+  function setDone(section, id, checked) {
+    var k = scopes[section];
+    state[k] = state[k] || {};
+    if (checked) { state[k][id] = true; } else { delete state[k][id]; }
+    saveLocal();
+    pushChange(k, id, checked);
+    updateProgress();
   }
 
   function render() {
@@ -350,18 +394,19 @@
       hinweisEl.hidden = true;
     }
 
-    renderList("list-woechentlich", tasksData.woechentlich || [], "No tasks yet.");
-    renderList("list-zusatz", visibleZusatz(), "Nothing extra this week. 👍");
+    SECTIONS.forEach(function (section) {
+      renderList(section, tasksData[section] || []);
+    });
     updateProgress();
   }
 
-  function renderList(elId, tasks, emptyText) {
-    var ul = document.getElementById(elId);
+  function renderList(section, tasks) {
+    var ul = document.getElementById("list-" + section);
     ul.innerHTML = "";
     if (!tasks.length) {
       var li = document.createElement("li");
       li.className = "empty";
-      li.textContent = emptyText;
+      li.textContent = "Nothing here right now.";
       ul.appendChild(li);
       return;
     }
@@ -371,12 +416,9 @@
       var label = document.createElement("label");
       var input = document.createElement("input");
       input.type = "checkbox";
-      input.checked = !!done[t.id];
+      input.checked = isDone(section, t.id);
       input.addEventListener("change", function () {
-        if (input.checked) { done[t.id] = true; } else { delete done[t.id]; }
-        saveLocal();
-        pushChange(t.id, input.checked);
-        updateProgress();
+        setDone(section, t.id, input.checked);
       });
       var box = document.createElement("span");
       box.className = "box";
@@ -393,9 +435,13 @@
   }
 
   function updateProgress() {
-    var all = (tasksData.woechentlich || []).concat(visibleZusatz());
-    var total = all.length;
-    var count = all.filter(function (t) { return done[t.id]; }).length;
+    var total = 0, count = 0;
+    SECTIONS.forEach(function (section) {
+      (tasksData[section] || []).forEach(function (t) {
+        total++;
+        if (isDone(section, t.id)) { count++; }
+      });
+    });
     document.getElementById("progress-text").textContent = count + " of " + total;
     document.getElementById("progress-fill").style.width = total ? (100 * count / total) + "%" : "0%";
     document.getElementById("all-done").style.display = (total > 0 && count === total) ? "block" : "none";
@@ -403,7 +449,7 @@
 
   /* ---- Load task list and refresh it regularly ---- */
   function applyData(data) {
-    if (data && (data.woechentlich || data.zusatz)) {
+    if (data && (data.everyVisit || data.weekly || data.biweekly || data.oneTime)) {
       tasksData = data;
       try { localStorage.setItem("putzplan-cache", JSON.stringify(data)); } catch (e) {}
       render();
@@ -417,14 +463,16 @@
       .catch(function () { /* offline or file missing: keep last state */ });
   }
 
-  /* Detect a new week in case the page stays open for days */
-  function checkNewWeek() {
-    var now = weekKey(new Date());
-    if (now !== currentWeek) {
-      currentWeek = now;
-      storageKey = "putzplan-" + currentWeek;
-      done = {};
-      cleanupOldWeeks();
+  /* Detect a new day/week/period in case the page stays open */
+  function checkScopes() {
+    var next = scopeKeys();
+    var changed = SECTIONS.some(function (s) { return next[s] !== scopes[s]; });
+    if (changed) {
+      scopes = next;
+      SECTIONS.forEach(function (s) {
+        if (!state[scopes[s]]) { state[scopes[s]] = {}; }
+      });
+      saveLocal();
       render();
       pullState();
     }
@@ -436,18 +484,17 @@
     if (cached) { tasksData = cached; }
   } catch (e) {}
 
-  cleanupOldWeeks();
   render();
   fetchTasks();
 
-  setInterval(function () { checkNewWeek(); fetchTasks(); }, 5 * 60 * 1000);
-  setInterval(function () { checkNewWeek(); pullState(); }, 20 * 1000);
+  setInterval(function () { checkScopes(); fetchTasks(); }, 5 * 60 * 1000);
+  setInterval(function () { checkScopes(); pullState(); }, 20 * 1000);
   document.addEventListener("visibilitychange", function () {
-    if (!document.hidden) { checkNewWeek(); fetchTasks(); }
+    if (!document.hidden) { checkScopes(); fetchTasks(); }
   });
 
   document.getElementById("footer").innerHTML =
-    "Ticks reset automatically every Monday.<br>The list updates on its own.";
+    "“Every visit” resets daily, weekly tasks every Monday.<br>Ticks are shared across all devices automatically.";
 })();
 </script>
 </body>
