@@ -38,9 +38,49 @@
     background: var(--bg);
     color: var(--text);
     min-height: 100vh;
-    padding: 16px 16px 48px;
+  }
+  nav {
+    position: sticky;
+    top: 0;
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    box-shadow: var(--shadow);
+    z-index: 10;
+  }
+  .nav-inner {
     max-width: 560px;
     margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 10px 12px;
+  }
+  .brand {
+    font-weight: 700;
+    font-size: 1rem;
+    margin-right: auto;
+    text-decoration: none;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  nav a.link {
+    text-decoration: none;
+    color: var(--muted);
+    font-size: 0.95rem;
+    padding: 8px 12px;
+    border-radius: 10px;
+  }
+  nav a.link.active {
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-weight: 600;
+  }
+  main {
+    max-width: 560px;
+    margin: 0 auto;
+    padding: 16px 16px 48px;
   }
   header { padding: 8px 4px 16px; }
   h1 { font-size: 1.5rem; font-weight: 700; }
@@ -151,6 +191,14 @@
 </style>
 </head>
 <body>
+  <nav>
+    <div class="nav-inner">
+      <a class="brand" href="../">🏠 Haushalt</a>
+      <a class="link" href="../">Start</a>
+      <a class="link active" href="./">Putzplan</a>
+    </div>
+  </nav>
+  <main>
   <header>
     <h1 id="titel">Putzplan</h1>
     <div class="week" id="week-label"></div>
@@ -171,6 +219,7 @@
   <ul class="tasks" id="list-zusatz"></ul>
 
   <footer id="footer"></footer>
+  </main>
 
 <script>
 (function () {
